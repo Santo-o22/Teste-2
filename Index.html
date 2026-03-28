@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FísicaLab – MU & MUV</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e1a;--bg2:#111827;--panel:#161d2e;--panel2:#1e2a40;
+  --accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--accent4:#10b981;
+  --text:#e8edf5;--text2:#8fa3c0;--border:#2a3a55;
+  --mu:#00d4ff;--muv:#ff6b35;
+  --danger:#ef4444;--warn:#f59e0b;--ok:#10b981;
+}
+.light{--bg:#f0f4ff;--bg2:#e8edf8;--panel:#fff;--panel2:#f8faff;--text:#1a2340;--text2:#4a5a7a;--border:#c8d4e8;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--accent3);border-radius:3px;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,14,26,.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 16px;height:60px;display:flex;align-items:center;gap:6px;}
+.nav-logo{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--accent);text-decoration:none;margin-right:8px;white-space:nowrap;}
+.nav-logo span{color:var(--accent2);}
+.nav-links{display:flex;gap:1px;flex-wrap:wrap;flex:1;overflow:hidden;}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.75rem;font-weight:600;padding:5px 8px;border-radius:6px;transition:all .2s;white-space:nowrap;cursor:pointer;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);background:rgba(0,212,255,.1);}
+.nav-right{display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0;}
+.btn{padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-family:'Exo 2',sans-serif;font-weight:600;font-size:.82rem;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff;}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:4px 10px;font-size:.75rem;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-warn{background:var(--warn);color:#000;}
+.btn-ok{background:var(--ok);color:#fff;}
+.theme-btn{background:none;border:none;cursor:pointer;font-size:1.1rem;padding:4px;}
+.lang-select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:.75rem;cursor:pointer;}
+
+.page{display:none;padding-top:68px;min-height:100vh;}
+.page.active{display:block;}
+
+/* HERO */
+.hero{padding:50px 24px 36px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(124,58,237,.15),transparent);}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:clamp(1.6rem,4vw,3rem);font-weight:900;line-height:1.15;position:relative;}
+.hero h1 .mu{color:var(--mu);}
+.hero h1 .muv{color:var(--muv);}
+.hero p{color:var(--text2);max-width:580px;margin:14px auto 28px;font-size:1rem;line-height:1.65;position:relative;}
+.badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;}
+.badge{padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700;border:1px solid;}
+.badge-mu{color:var(--mu);border-color:var(--mu);background:rgba(0,212,255,.08);}
+.badge-muv{color:var(--muv);border-color:var(--muv);background:rgba(255,107,53,.08);}
+
+/* SIM */
+.sim-container{max-width:900px;margin:0 auto;padding:16px 24px 36px;}
+.sim-title{font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--accent);margin-bottom:14px;text-align:center;}
+#simCanvas{width:100%;border-radius:14px;border:2px solid var(--border);background:#0d1526;display:block;}
+.sim-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;align-items:center;}
+.sim-controls label{font-size:.82rem;color:var(--text2);display:flex;align-items:center;gap:6px;}
+.sim-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.sim-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.sim-card h4{font-size:.75rem;color:var(--text2);margin-bottom:5px;}
+.sim-card .val{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;}
+.sim-card.mu-card .val{color:var(--mu);}
+.sim-card.muv-card .val{color:var(--muv);}
+
+/* THEORY */
+.theory-section{max-width:900px;margin:0 auto;padding:16px 24px 50px;}
+.theory-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:660px){.theory-grid{grid-template-columns:1fr;}}
+.theory-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px;position:relative;overflow:hidden;}
+.theory-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.theory-card.mu-card::before{background:linear-gradient(90deg,var(--mu),transparent);}
+.theory-card.muv-card::before{background:linear-gradient(90deg,var(--muv),transparent);}
+.theory-card h2{font-family:'Orbitron',sans-serif;font-size:1rem;margin-bottom:10px;}
+.theory-card.mu-card h2{color:var(--mu);}
+.theory-card.muv-card h2{color:var(--muv);}
+.theory-card p{font-size:.88rem;line-height:1.7;color:var(--text2);margin-bottom:10px;}
+.formula-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;font-family:'Space Mono',monospace;font-size:.9rem;text-align:center;}
+.formula-box .formula{font-size:1.15rem;font-weight:700;color:var(--accent);}
+.formula-box.muv-formula .formula{color:var(--muv);}
+.formula-box .legend{font-size:.72rem;color:var(--text2);margin-top:6px;font-family:'Exo 2',sans-serif;}
+.step-list{list-style:none;counter-reset:steps;}
+.step-list li{counter-increment:steps;padding:8px 10px 8px 40px;position:relative;border-left:2px solid var(--border);margin-bottom:6px;font-size:.85rem;line-height:1.6;color:var(--text2);}
+.step-list li::before{content:counter(steps);position:absolute;left:-12px;top:8px;width:24px;height:24px;background:var(--accent3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;}
+.step-list.muv li::before{background:var(--muv);}
+.step-list li strong{color:var(--text);}
+.section-head{font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--accent);text-align:center;margin:36px 0 18px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+
+/* GRAPHS */
+.illus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px;}
+.illus-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.illus-card h4{font-size:.82rem;margin-bottom:8px;color:var(--text2);}
+.illus-card canvas{width:100%;height:auto;}
+
+/* EXERCISE */
+.ex-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px;margin-top:14px;}
+.ex-question{font-size:.95rem;line-height:1.7;color:var(--text);margin-bottom:14px;background:var(--bg2);border-radius:10px;padding:14px;border-left:3px solid var(--accent2);}
+.ex-input-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;}
+.ex-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:.9rem;flex:1;min-width:130px;}
+.ex-input:focus{outline:none;border-color:var(--accent);}
+.ex-result{margin-top:12px;padding:12px;border-radius:10px;font-size:.88rem;display:none;}
+.ex-result.correct{background:rgba(16,185,129,.1);border:1px solid var(--ok);color:var(--ok);}
+.ex-result.wrong{background:rgba(239,68,68,.1);border:1px solid var(--danger);color:var(--danger);}
+
+/* SLIDES */
+.slides-container{max-width:780px;margin:0 auto;padding:16px 24px 50px;}
+.slide-wrap{position:relative;background:var(--panel);border:2px solid var(--border);border-radius:20px;overflow:hidden;min-height:360px;}
+.slide{display:none;padding:36px;animation:slideIn .35s ease;}
+.slide.active{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+.slide h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.1rem,3vw,1.8rem);margin-bottom:14px;}
+.slide p,.slide ul{font-size:.9rem;line-height:1.8;color:var(--text2);max-width:520px;}
+.slide ul{text-align:left;list-style:none;}
+.slide ul li{padding:5px 0 5px 22px;position:relative;}
+.slide ul li::before{content:'▶';position:absolute;left:0;color:var(--accent);font-size:.65rem;top:8px;}
+.slide-formula{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--accent);background:var(--bg2);padding:14px 24px;border-radius:12px;margin:14px 0;}
+.slide-nav{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:18px;}
+.slide-dots{display:flex;gap:5px;}
+.slide-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s;}
+.slide-dot.active{background:var(--accent);width:20px;border-radius:4px;}
+.slide-counter{font-size:.82rem;color:var(--text2);font-family:'Space Mono',monospace;}
+
+/* PROJECTS */
+.projects-section{max-width:900px;margin:0 auto;padding:16px 24px 50px;}
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:14px;}
+.proj-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform .2s,border-color .2s;}
+.proj-card:hover{transform:translateY(-4px);border-color:var(--accent);}
+.proj-img{width:100%;height:155px;object-fit:cover;background:var(--bg2);}
+.proj-info{padding:12px;}
+.proj-info h4{font-size:.88rem;margin-bottom:4px;color:var(--text);}
+.proj-info p{font-size:.76rem;color:var(--text2);line-height:1.5;}
+
+/* VIDEOS */
+.video-section{max-width:900px;margin:0 auto;padding:16px 24px 50px;}
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:14px;}
+.video-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.video-card iframe,.video-card video{width:100%;aspect-ratio:16/9;border:none;background:#000;}
+.video-card .vid-info{padding:12px;}
+.video-card .vid-info h4{font-size:.88rem;margin-bottom:4px;}
+.video-card .vid-info p{font-size:.75rem;color:var(--text2);}
+.video-badge{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:4px;margin-bottom:6px;}
+.badge-active{background:rgba(16,185,129,.2);color:var(--ok);}
+.badge-inactive{background:rgba(239,68,68,.2);color:var(--danger);}
+
+/* AUTH */
+.auth-wrap{max-width:400px;margin:50px auto;padding:0 24px;}
+.auth-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:32px;}
+.auth-card h2{font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--accent);margin-bottom:22px;text-align:center;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:5px;font-weight:600;}
+.form-input-wrap{position:relative;}
+.form-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px 40px 10px 13px;font-size:.92rem;font-family:'Exo 2',sans-serif;transition:border-color .2s;}
+.form-input:focus{outline:none;border-color:var(--accent);}
+textarea.form-input{padding-right:13px;resize:vertical;}
+.eye-btn{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:.95rem;}
+.auth-error{background:rgba(239,68,68,.1);border:1px solid var(--danger);color:var(--danger);border-radius:8px;padding:9px 12px;font-size:.82rem;margin-bottom:12px;display:none;}
+.auth-switch{text-align:center;margin-top:14px;font-size:.82rem;color:var(--text2);}
+.auth-switch a{color:var(--accent);cursor:pointer;text-decoration:underline;}
+
+/* CHAT */
+.chat-container{max-width:680px;margin:0 auto;padding:16px 24px 50px;}
+.chat-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;height:400px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.chat-msg{max-width:78%;padding:9px 13px;border-radius:12px;font-size:.86rem;line-height:1.6;}
+.chat-msg.mine{align-self:flex-end;background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff;border-bottom-right-radius:3px;}
+.chat-msg.other{align-self:flex-start;background:var(--panel2);border:1px solid var(--border);border-bottom-left-radius:3px;}
+.chat-msg.bot{align-self:flex-start;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);border-bottom-left-radius:3px;}
+.chat-msg .msg-header{font-size:.7rem;opacity:.75;margin-bottom:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.chat-msg .role-badge{font-size:.6rem;padding:1px 5px;border-radius:4px;font-weight:700;}
+.role-dono{background:linear-gradient(90deg,#ffd700,#ff8c00);color:#000;}
+.role-fundador{background:linear-gradient(90deg,var(--accent3),#a855f7);color:#fff;}
+.role-gerente{background:var(--mu);color:#000;}
+.role-auxiliar{background:var(--accent4);color:#000;}
+.role-diretora{background:#ec4899;color:#fff;}
+.role-professor{background:#f59e0b;color:#000;}
+.role-user{background:var(--border);color:var(--text2);}
+.role-bot{background:#6366f1;color:#fff;}
+.chat-input-row{display:flex;gap:8px;margin-top:10px;}
+.chat-input{flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 12px;font-size:.88rem;font-family:'Exo 2',sans-serif;}
+.chat-input:focus{outline:none;border-color:var(--accent);}
+.chat-notify{font-size:.76rem;color:var(--warn);margin-top:6px;padding:7px 11px;background:rgba(245,158,11,.08);border-radius:7px;display:none;}
+.robot-intro{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text2);background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;}
+
+/* FEEDBACK */
+.feedback-section{max-width:580px;margin:0 auto;padding:16px 24px 50px;}
+.feedback-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.feedback-item{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;}
+.feedback-item .fb-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.feedback-item .fb-user{font-size:.8rem;font-weight:700;color:var(--accent);}
+.feedback-item .fb-text{font-size:.86rem;color:var(--text2);line-height:1.6;}
+.stars{color:#ffd700;font-size:.95rem;}
+
+/* ADMIN */
+.admin-wrap{max-width:1000px;margin:0 auto;padding:16px 24px 50px;}
+.admin-tabs{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:5px;}
+.admin-tab{padding:7px 14px;border-radius:7px;border:none;cursor:pointer;font-family:'Exo 2',sans-serif;font-weight:600;font-size:.78rem;background:transparent;color:var(--text2);transition:all .2s;}
+.admin-tab.active{background:var(--accent3);color:#fff;}
+.admin-panel{display:none;}
+.admin-panel.active{display:block;}
+.admin-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.admin-table th{background:var(--bg2);color:var(--text2);padding:9px 11px;text-align:left;font-size:.75rem;text-transform:uppercase;}
+.admin-table td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.admin-table tr:hover td{background:var(--panel2);}
+.user-row-actions{display:flex;gap:5px;flex-wrap:wrap;}
+.select-role{background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:.75rem;}
+.log-entry{padding:7px 11px;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--text2);}
+.log-entry span{color:var(--text);font-weight:600;}
+.muted-badge{background:rgba(239,68,68,.15);color:var(--danger);font-size:.68rem;padding:2px 5px;border-radius:4px;margin-left:5px;}
+.staff-chat-box,.mixed-chat-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;height:320px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;}
+
+/* GENERAL */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:11px 18px;font-size:.86rem;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px;}
+.toast.show{transform:none;opacity:1;}
+.toast.toast-ok{border-color:var(--ok);color:var(--ok);}
+.toast.toast-warn{border-color:var(--warn);color:var(--warn);}
+.toast.toast-err{border-color:var(--danger);color:var(--danger);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:26px;max-width:440px;width:90%;position:relative;}
+.modal-box h3{font-family:'Orbitron',sans-serif;color:var(--accent);margin-bottom:12px;font-size:1rem;}
+.modal-close{position:absolute;top:11px;right:13px;background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;}
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<nav>
+  <a class="nav-logo" href="#" onclick="showPage('home')">Física<span>Lab</span></a>
+  <div class="nav-links">
+    <a onclick="showPage('home')" id="nav-home">🏠 Início</a>
+    <a onclick="showPage('theory')" id="nav-theory">📚 Teoria</a>
+    <a onclick="showPage('exercise')" id="nav-exercise">✏️ Exercícios</a>
+    <a onclick="showPage('slides')" id="nav-slides">🎞️ Slides</a>
+    <a onclick="showPage('projects')" id="nav-projects">🔬 Projetos</a>
+    <a onclick="showPage('videos')" id="nav-videos">🎬 Vídeos</a>
+    <a onclick="showPage('chat')" id="nav-chat">💬 Chat</a>
+    <a onclick="showPage('feedback')" id="nav-feedback">⭐ Feedback</a>
+    <a onclick="showPage('admin')" id="nav-admin" style="display:none">⚙️ Admin</a>
+  </div>
+  <div class="nav-right">
+    <select class="lang-select" id="langSelect" onchange="setLang(this.value)">
+      <option value="pt">🇧🇷 PT</option>
+      <option value="en">🇺🇸 EN</option>
+      <option value="es">🇪🇸 ES</option>
+    </select>
+    <button class="theme-btn" onclick="toggleTheme()" title="Tema">🌙</button>
+    <button class="btn btn-ghost btn-sm" id="loginBtn" onclick="showPage('login')">Entrar</button>
+    <div id="userBadge" style="display:none;font-size:.8rem;color:var(--accent);font-weight:700;cursor:pointer;white-space:nowrap;" onclick="logout()">👤 <span id="userNameBadge"></span> ✕</div>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h1><span class="mu">Movimento Uniforme</span><br>&amp;<br><span class="muv">Movimento Uniformemente Variado</span></h1>
+    <p>Aprenda física de forma interativa com simulações 2D, teoria completa, exercícios e slides!</p>
+    <div class="badges">
+      <span class="badge badge-mu">🚗 MU – Velocidade Constante</span>
+      <span class="badge badge-muv">🏎️ MUV – Aceleração Constante</span>
+    </div>
+  </div>
+  <div class="sim-container">
+    <div class="sim-title">⚡ Simulação Interativa – Rampa Reta (MU) vs Rampa Ondulada (MUV)</div>
+    <canvas id="simCanvas" height="320"></canvas>
+    <div class="sim-controls">
+      <button class="btn btn-primary" onclick="startSim()">▶ Iniciar</button>
+      <button class="btn btn-ghost" onclick="resetSim()">↺ Reiniciar</button>
+      <label>Vel. MU: <input type="range" min="1" max="6" value="2" id="muSpeed" oninput="document.getElementById('muSpeedVal').textContent=this.value" style="width:80px"> <span id="muSpeedVal">2</span></label>
+      <label>Acel. MUV: <input type="range" min="1" max="6" value="2" id="muvAcc" oninput="document.getElementById('muvAccVal').textContent=this.value" style="width:80px"> <span id="muvAccVal">2</span></label>
+    </div>
+    <div class="sim-info">
+      <div class="sim-card mu-card"><h4>🚗 MU – Velocidade</h4><div class="val" id="muVelDisplay">0.0 m/s</div></div>
+      <div class="sim-card muv-card"><h4>🏎️ MUV – Velocidade</h4><div class="val" id="muvVelDisplay">0.0 m/s</div></div>
+      <div class="sim-card mu-card"><h4>MU – Posição</h4><div class="val" id="muPosDisplay">0.0 m</div></div>
+      <div class="sim-card muv-card"><h4>MUV – Posição</h4><div class="val" id="muvPosDisplay">0.0 m</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- THEORY -->
+<div class="page" id="page-theory">
+  <div class="theory-section">
+    <div class="section-head">📚 Teoria Completa: MU &amp; MUV</div>
+    <div class="theory-grid">
+      <div class="theory-card mu-card">
+        <h2>🚗 Movimento Uniforme (MU)</h2>
+        <p>O Movimento Uniforme ocorre quando um corpo se desloca em linha reta com <strong>velocidade escalar constante</strong>. Sem aceleração, a cada intervalo de tempo igual o corpo percorre distâncias iguais.</p>
+        <p><strong>Características:</strong></p>
+        <ul class="step-list">
+          <li>Velocidade escalar constante (v = cte)</li>
+          <li>Aceleração nula (a = 0)</li>
+          <li>Trajetória retilínea</li>
+          <li>Gráfico S×t: reta inclinada</li>
+          <li>Gráfico V×t: reta horizontal</li>
+        </ul>
+        <div class="formula-box">
+          <div class="formula">S = S₀ + v · t</div>
+          <div class="legend">S=posição final | S₀=posição inicial | v=velocidade | t=tempo</div>
+        </div>
+        <div class="formula-box">
+          <div class="formula">v = ΔS / Δt</div>
+          <div class="legend">v=velocidade média | ΔS=deslocamento | Δt=intervalo de tempo</div>
+        </div>
+        <p><strong>📌 Exemplo Resolvido:</strong></p>
+        <p style="background:var(--bg2);border-radius:8px;padding:10px;font-size:.85rem">Um carro percorre 120 km em 2 horas com velocidade constante. Qual a velocidade?</p>
+        <ul class="step-list">
+          <li><strong>Dados:</strong> ΔS = 120 km, Δt = 2 h</li>
+          <li><strong>Fórmula:</strong> v = ΔS / Δt</li>
+          <li><strong>Cálculo:</strong> v = 120 / 2 = <strong style="color:var(--mu)">60 km/h</strong></li>
+        </ul>
+      </div>
+      <div class="theory-card muv-card">
+        <h2>🏎️ Movimento Uniformemente Variado (MUV)</h2>
+        <p>No MUV a <strong>aceleração escalar é constante e diferente de zero</strong>. A velocidade varia de forma uniforme. Pode ser acelerado (v aumenta) ou retardado (v diminui).</p>
+        <p><strong>Características:</strong></p>
+        <ul class="step-list muv">
+          <li>Aceleração constante (a ≠ 0)</li>
+          <li>Velocidade varia linearmente</li>
+          <li>Gráfico S×t: parábola</li>
+          <li>Gráfico V×t: reta inclinada</li>
+          <li>Gráfico A×t: reta horizontal</li>
+        </ul>
+        <div class="formula-box muv-formula">
+          <div class="formula">v = v₀ + a · t</div>
+          <div class="legend">v=vel.final | v₀=vel.inicial | a=aceleração | t=tempo</div>
+        </div>
+        <div class="formula-box muv-formula">
+          <div class="formula">S = S₀ + v₀·t + ½·a·t²</div>
+          <div class="legend">Equação horária da posição</div>
+        </div>
+        <div class="formula-box muv-formula">
+          <div class="formula">v² = v₀² + 2·a·ΔS</div>
+          <div class="legend">Equação de Torricelli (independe do tempo)</div>
+        </div>
+        <p><strong>📌 Exemplo Resolvido:</strong></p>
+        <p style="background:var(--bg2);border-radius:8px;padding:10px;font-size:.85rem">Um carro parte do repouso com a = 3 m/s². Qual a velocidade após 4 s?</p>
+        <ul class="step-list muv">
+          <li><strong>Dados:</strong> v₀ = 0, a = 3 m/s², t = 4 s</li>
+          <li><strong>Fórmula:</strong> v = v₀ + a·t</li>
+          <li><strong>Cálculo:</strong> v = 0 + 3×4 = <strong style="color:var(--muv)">12 m/s</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:36px">📊 Gráficos Comparativos</div>
+    <div class="illus-grid">
+      <div class="illus-card"><h4>MU – Posição × Tempo</h4><canvas id="muStGraph" width="220" height="130"></canvas></div>
+      <div class="illus-card"><h4>MU – Velocidade × Tempo</h4><canvas id="muVtGraph" width="220" height="130"></canvas></div>
+      <div class="illus-card"><h4>MUV – Posição × Tempo</h4><canvas id="muvStGraph" width="220" height="130"></canvas></div>
+      <div class="illus-card"><h4>MUV – Velocidade × Tempo</h4><canvas id="muvVtGraph" width="220" height="130"></canvas></div>
+    </div>
+
+    <div class="section-head" style="margin-top:36px">🔢 Tabela Comparativa</div>
+    <div class="card" style="overflow-x:auto">
+      <table class="admin-table">
+        <thead><tr><th>Grandeza</th><th style="color:var(--mu)">MU</th><th style="color:var(--muv)">MUV</th></tr></thead>
+        <tbody>
+          <tr><td>Velocidade</td><td>Constante</td><td>Varia linearmente</td></tr>
+          <tr><td>Aceleração</td><td>Zero (a = 0)</td><td>Constante (a ≠ 0)</td></tr>
+          <tr><td>Gráfico S×t</td><td>Reta inclinada</td><td>Parábola</td></tr>
+          <tr><td>Gráfico V×t</td><td>Reta horizontal</td><td>Reta inclinada</td></tr>
+          <tr><td>Força resultante</td><td>Nula (F=0)</td><td>Diferente de zero</td></tr>
+          <tr><td>Rampa</td><td>Plana/inclinada constante</td><td>Ondulada/inclinada variável</td></tr>
+          <tr><td>Equação principal</td><td>S = S₀ + v·t</td><td>S = S₀ + v₀t + ½at²</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div class="page" id="page-exercise">
+  <div class="theory-section">
+    <div class="section-head">✏️ Exercícios Aleatórios</div>
+    <div class="ex-box">
+      <div class="ex-question" id="exQuestion">Clique em "🎲 Gerar Exercício" para começar!</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+        <button class="btn btn-primary" onclick="generateExercise()">🎲 Gerar Exercício</button>
+        <button class="btn btn-ok" onclick="checkExercise()">✔ Verificar</button>
+        <button class="btn btn-ghost" onclick="showExSolution()">💡 Solução</button>
+      </div>
+      <div class="ex-input-row">
+        <input class="ex-input" type="number" id="exAnswer" placeholder="Sua resposta...">
+        <span id="exUnit" style="color:var(--text2);font-size:.88rem"></span>
+      </div>
+      <div class="ex-result" id="exResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDES -->
+<div class="page" id="page-slides">
+  <div class="slides-container">
+    <div class="section-head">🎞️ Slides Interativos</div>
+    <div class="slide-wrap">
+      <div class="slide active" style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(0,212,255,.08))">
+        <h2 style="color:var(--accent)">Bem-vindo à Cinemática!</h2>
+        <p>Estudaremos os dois tipos fundamentais de movimento retilíneo da Física Clássica.</p>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:18px">
+          <div style="background:rgba(0,212,255,.1);border:1px solid var(--mu);border-radius:12px;padding:14px 20px;color:var(--mu);font-weight:700;text-align:center">🚗 MU<br><small style="font-weight:400">Velocidade Constante</small></div>
+          <div style="background:rgba(255,107,53,.1);border:1px solid var(--muv);border-radius:12px;padding:14px 20px;color:var(--muv);font-weight:700;text-align:center">🏎️ MUV<br><small style="font-weight:400">Aceleração Constante</small></div>
+        </div>
+      </div>
+      <div class="slide">
+        <h2 style="color:var(--mu)">O que é MU?</h2>
+        <p>Movimento Uniforme é aquele em que a velocidade permanece <strong>constante</strong> ao longo do tempo. Sem aceleração — a força resultante é zero.</p>
+        <div class="slide-formula">v = constante</div>
+        <ul><li>Trajetória sempre retilínea</li><li>Força resultante = zero (1ª Lei de Newton)</li><li>Gráfico S×t: linha reta inclinada</li><li>Pense: carro em piloto automático</li></ul>
+      </div>
+      <div class="slide">
+        <h2 style="color:var(--mu)">Equação Horária do MU</h2>
+        <p>A posição em função do tempo:</p>
+        <div class="slide-formula">S = S₀ + v · t</div>
+        <ul><li><strong>S</strong> = posição final (m)</li><li><strong>S₀</strong> = posição inicial (m)</li><li><strong>v</strong> = velocidade (m/s)</li><li><strong>t</strong> = tempo (s)</li></ul>
+        <p style="margin-top:12px;font-size:.82rem;color:var(--accent)">Exemplo: S₀=0, v=10 m/s, t=5s → S = 50 m</p>
+      </div>
+      <div class="slide">
+        <h2 style="color:var(--muv)">O que é MUV?</h2>
+        <p>No MUV a <strong>aceleração é constante e diferente de zero</strong>. A velocidade muda uniformemente com o tempo.</p>
+        <div class="slide-formula" style="color:var(--muv)">a = constante ≠ 0</div>
+        <ul><li>MUV acelerado: v aumenta (a e v mesmo sentido)</li><li>MUV retardado: v diminui (a e v sentidos opostos)</li><li>Gráfico S×t: parábola</li><li>Pense: carro acelerando / freando</li></ul>
+      </div>
+      <div class="slide">
+        <h2 style="color:var(--muv)">As 3 Equações do MUV</h2>
+        <div class="slide-formula" style="font-size:.95rem;color:var(--muv)">① v = v₀ + a·t</div>
+        <div class="slide-formula" style="font-size:.95rem;color:var(--muv)">② S = S₀ + v₀·t + ½·a·t²</div>
+        <div class="slide-formula" style="font-size:.95rem;color:var(--muv)">③ v² = v₀² + 2·a·ΔS</div>
+        <p style="font-size:.82rem">A equação ③ (Torricelli) não depende do tempo — muito útil!</p>
+      </div>
+      <div class="slide">
+        <h2>🏁 MU vs MUV</h2>
+        <ul>
+          <li>MU: a=0 | MUV: a≠0</li>
+          <li>MU: v constante | MUV: v varia</li>
+          <li>MU: gráfico S×t = reta | MUV: parábola</li>
+          <li>MU: força nula | MUV: força ≠ 0</li>
+          <li>MU: rampa plana | MUV: rampa ondulada</li>
+        </ul>
+      </div>
+      <div class="slide">
+        <h2 style="color:var(--accent4)">Aplicações no Dia a Dia</h2>
+        <ul>
+          <li>🚗 Carro em rodovia (cruise control) → MU</li>
+          <li>🚀 Foguete decolando → MUV acelerado</li>
+          <li>🛑 Freio de emergência → MUV retardado</li>
+          <li>⬇️ Queda livre → MUV com a = g ≈ 10 m/s²</li>
+          <li>🎢 Descida de montanha-russa → MUV acelerado</li>
+          <li>🏎️ F1 saindo do pit lane → MUV acelerado</li>
+        </ul>
+      </div>
+      <div class="slide" style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(124,58,237,.1))">
+        <h2 style="color:var(--accent4)">Parabéns! 🎉</h2>
+        <p>Você concluiu todos os slides! Agora pratique nos exercícios.</p>
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+          <button class="btn btn-primary" onclick="showPage('exercise')">✏️ Fazer Exercícios</button>
+          <button class="btn btn-ghost" onclick="goSlide(0)">↺ Recomeçar</button>
+        </div>
+      </div>
+    </div>
+    <div class="slide-nav">
+      <button class="btn btn-ghost btn-sm" onclick="prevSlide()">◀ Anterior</button>
+      <div class="slide-dots" id="slideDots"></div>
+      <button class="btn btn-primary btn-sm" onclick="nextSlide()">Próximo ▶</button>
+    </div>
+    <div style="text-align:center;margin-top:8px"><span class="slide-counter" id="slideCounter">1 / 8</span></div>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<div class="page" id="page-projects">
+  <div class="projects-section">
+    <div class="section-head">🔬 Nossos Projetos</div>
+    <p style="text-align:center;color:var(--text2);margin-bottom:4px">Veja os projetos físicos construídos pela turma para demonstrar MU e MUV!</p>
+    <div class="projects-grid">
+      <div class="proj-card">
+        <img class="proj-img" src="IMG-20260327-WA0003.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Projeto 1">
+        <div style="display:none;height:155px;align-items:center;justify-content:center;font-size:2.5rem;background:var(--bg2)">🚗</div>
+        <div class="proj-info"><h4>Carrinho MU/MUV – Motor DC</h4><p>Protótipo com motor DC e caixa de engrenagens (branca/verde) para demonstração prática em rampa.</p></div>
+      </div>
+      <div class="proj-card">
+        <img class="proj-img" src="IMG-20260327-WA0002.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Projeto 2">
+        <div style="display:none;height:155px;align-items:center;justify-content:center;font-size:2.5rem;background:var(--bg2)">⚡</div>
+        <div class="proj-info"><h4>Sistema de Alimentação</h4><p>Base do carrinho com bateria Panasonic AA e chave liga/desliga ON/OFF integrada.</p></div>
+      </div>
+      <div class="proj-card">
+        <img class="proj-img" src="IMG-20260327-WA0004.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Projeto 3">
+        <div style="display:none;height:155px;align-items:center;justify-content:center;font-size:2.5rem;background:var(--bg2)">📦</div>
+        <div class="proj-info"><h4>Pistas de Papelão Reciclado</h4><p>Rampas construídas com caixas de papelão: reta inclinada (MU) e ondulada (MUV) — material 100% reciclado.</p></div>
+      </div>
+      <div class="proj-card">
+        <img class="proj-img" src="IMG-20260327-WA0007.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Projeto 4">
+        <div style="display:none;height:155px;align-items:center;justify-content:center;font-size:2.5rem;background:var(--bg2)">🛞</div>
+        <div class="proj-info"><h4>Vista Superior do Motor</h4><p>Engrenagens branca e verde interligadas ao eixo traseiro, transmitindo rotação às rodas.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEOS -->
+<div class="page" id="page-videos">
+  <div class="video-section">
+    <div class="section-head">🎬 Vídeos de Apoio</div>
+    <div id="videoList" class="video-grid"></div>
+    <div id="noVideosMsg" style="text-align:center;color:var(--text2);margin-top:40px;display:none;padding:40px">
+      <div style="font-size:3rem;margin-bottom:14px">🎬</div>
+      <p>Nenhum vídeo publicado ainda.<br>Aguarde os administradores!</p>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="page" id="page-chat">
+  <div class="chat-container">
+    <div class="section-head">💬 Chat Público</div>
+    <div id="chatLoginWarn" style="text-align:center;padding:30px;color:var(--text2);display:none;background:var(--panel);border-radius:14px;border:1px solid var(--border)">
+      Faça login para participar do chat!<br><button class="btn btn-primary" onclick="showPage('login')" style="margin-top:12px">Entrar</button>
+    </div>
+    <div id="chatArea">
+      <div class="robot-intro">🤖 <span><strong>RoboMod:</strong> Olá! Garanto um ambiente respeitoso aqui. Os admins monitoram tudo! 👁️</span></div>
+      <div class="chat-box" id="chatBox"></div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Escreva sua mensagem..." maxlength="280" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn btn-primary" onclick="sendChat()">Enviar</button>
+      </div>
+      <div class="chat-notify" id="chatNotify"></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-head" style="font-size:1rem;margin-top:10px">👩‍🏫 Chat Staff + Professores + Diretores</div>
+    <div id="mixedChatLoginWarn" style="text-align:center;padding:16px;color:var(--text2);background:var(--panel);border-radius:12px;border:1px solid var(--border)">Acesso restrito a staff, professores e diretores.</div>
+    <div id="mixedChatArea" style="display:none">
+      <div class="mixed-chat-box" id="mixedChatBox"></div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="mixedChatInput" placeholder="Chat staff/professores/diretores..." maxlength="280" onkeydown="if(event.key==='Enter')sendMixedChat()">
+        <button class="btn btn-primary" onclick="sendMixedChat()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK -->
+<div class="page" id="page-feedback">
+  <div class="feedback-section">
+    <div class="section-head">⭐ Feedback</div>
+    <div class="card" style="margin-bottom:18px">
+      <div class="form-group"><label>Avaliação</label>
+        <div id="starRating" style="font-size:1.8rem;cursor:pointer;display:flex;gap:4px">
+          <span onclick="setRating(1)">⭐</span><span onclick="setRating(2)">⭐</span><span onclick="setRating(3)">⭐</span><span onclick="setRating(4)">⭐</span><span onclick="setRating(5)">⭐</span>
+        </div>
+      </div>
+      <div class="form-group"><label>Comentário</label>
+        <textarea class="form-input" id="feedbackText" rows="3" placeholder="Conte o que achou do site..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="submitFeedback()">Enviar Feedback ⭐</button>
+    </div>
+    <div class="feedback-list" id="feedbackList"></div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="page" id="page-login">
+  <div class="auth-wrap">
+    <div class="auth-card" id="loginCard">
+      <h2>🔐 Entrar</h2>
+      <div class="auth-error" id="loginError"></div>
+      <div class="form-group"><label>Usuário</label><input class="form-input" id="loginUser" placeholder="Seu usuário" autocomplete="username"></div>
+      <div class="form-group"><label>Senha</label>
+        <div class="form-input-wrap">
+          <input class="form-input" type="password" id="loginPass" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="eye-btn" type="button" onclick="toggleEye('loginPass',this)">👁️</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="doLogin()">Entrar</button>
+      <div class="auth-switch">Não tem conta? <a onclick="switchAuth('register')">Cadastre-se</a></div>
+    </div>
+    <div class="auth-card" id="registerCard" style="display:none">
+      <h2>📝 Criar Conta</h2>
+      <div class="auth-error" id="registerError"></div>
+      <div class="form-group"><label>Usuário</label><input class="form-input" id="regUser" placeholder="Escolha um usuário" autocomplete="username"></div>
+      <div class="form-group"><label>Senha</label>
+        <div class="form-input-wrap">
+          <input class="form-input" type="password" id="regPass" placeholder="Senha" autocomplete="new-password">
+          <button class="eye-btn" type="button" onclick="toggleEye('regPass',this)">👁️</button>
+        </div>
+      </div>
+      <div class="form-group"><label>Confirmar Senha</label>
+        <div class="form-input-wrap">
+          <input class="form-input" type="password" id="regPass2" placeholder="Confirmar senha" onkeydown="if(event.key==='Enter')doRegister()">
+          <button class="eye-btn" type="button" onclick="toggleEye('regPass2',this)">👁️</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="doRegister()">Criar Conta</button>
+      <div class="auth-switch">Já tem conta? <a onclick="switchAuth('login')">Entrar</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div class="admin-wrap">
+    <div class="section-head">⚙️ Painel Administrativo</div>
+    <div class="admin-tabs" id="adminTabs"></div>
+    <div id="adminPanels"></div>
+  </div>
+</div>
+
+<script>
+// ── STORAGE ──
+function ls(k){try{return JSON.parse(localStorage.getItem(k));}catch{return null;}}
+function lss(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+// ── CONSTANTS ──
+const ROLE_HIERARCHY=['user','auxiliar','professor','diretora','gerente','dono','fundador'];
+const ROLE_LABELS={user:'Usuário',auxiliar:'Auxiliar',professor:'Professor(a)',diretora:'Diretora(o)',gerente:'Gerente',dono:'Dono',fundador:'Fundador & Scripter'};
+const BAD_WORDS=['merda','porra','caralho','foda','fdp','vsf','idiota','imbecil','cretino','safado','safada','puta','vadia','buceta','viado','kct','cacete','punheta'];
+const BAD_NICKS=[...BAD_WORDS,'admin','root','moderator','hack','luis2','fundador2'];
+const BOT_MSGS=['🤖 Lembrete: respeito acima de tudo! Os admins monitoram o chat! 👁️','🤖 Palavras impróprias são censuradas automaticamente. Jogue limpo! 😊','🤖 Este é um espaço educacional. Sejam gentis! 📚✨','🤖 Os administradores estão de olho. Bom comportamento sempre! 🛡️'];
+
+function hasRole(role,min){return ROLE_HIERARCHY.indexOf(role)>=ROLE_HIERARCHY.indexOf(min);}
+
+// ── INIT ──
+function initData(){
+  if(!ls('fl_users')) lss('fl_users',[{username:'luis',password:'19112223',role:'fundador',muted:false,muteUntil:0}]);
+  ['fl_chat','fl_staff_chat','fl_mixed_chat','fl_feedback','fl_logs','fl_videos'].forEach(k=>{if(!ls(k))lss(k,[]);});
+}
+initData();
+
+// ── AUTH ──
+let currentUser=ls('fl_session')||null;
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim().toLowerCase();
+  const p=document.getElementById('loginPass').value;
+  const users=ls('fl_users')||[];
+  const user=users.find(x=>x.username.toLowerCase()===u&&x.password===p);
+  if(!user){showAuthErr('login','Usuário ou senha incorretos.');return;}
+  currentUser=user;lss('fl_session',user);addLog(`${user.username} fez LOGIN`);afterLogin();
+}
+
+function doRegister(){
+  const u=document.getElementById('regUser').value.trim().toLowerCase();
+  const p=document.getElementById('regPass').value;
+  const p2=document.getElementById('regPass2').value;
+  if(u.length<3){showAuthErr('register','Usuário deve ter no mínimo 3 caracteres.');return;}
+  if(p.length<4){showAuthErr('register','Senha deve ter no mínimo 4 caracteres.');return;}
+  if(p!==p2){showAuthErr('register','Senhas não conferem.');return;}
+  if(hasBadNick(u)){showAuthErr('register','Nome de usuário inapropriado!');notifyAdmins(`Tentativa de nick inapropriado: "${u}"`);return;}
+  const users=ls('fl_users')||[];
+  if(users.find(x=>x.username.toLowerCase()===u)){showAuthErr('register','Usuário já existe!');return;}
+  const nu={username:u,password:p,role:'user',muted:false,muteUntil:0};
+  users.push(nu);lss('fl_users',users);currentUser=nu;lss('fl_session',nu);addLog(`${u} criou conta`);afterLogin();
+}
+
+function afterLogin(){
+  document.getElementById('loginBtn').style.display='none';
+  document.getElementById('userBadge').style.display='';
+  document.getElementById('userNameBadge').textContent=currentUser.username;
+  if(hasRole(currentUser.role,'auxiliar')) document.getElementById('nav-admin').style.display='';
+  updateChatVisibility();renderFeedback();showPage('home');showToast(`Bem-vindo, ${currentUser.username}! 🎉`,'ok');
+}
+
+function logout(){
+  if(!currentUser)return;addLog(`${currentUser.username} fez LOGOUT`);currentUser=null;localStorage.removeItem('fl_session');
+  document.getElementById('loginBtn').style.display='';document.getElementById('userBadge').style.display='none';
+  document.getElementById('nav-admin').style.display='none';updateChatVisibility();showPage('home');showToast('Até logo! 👋','ok');
+}
+
+function showAuthErr(which,msg){const el=document.getElementById(which+'Error');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
+function switchAuth(to){document.getElementById('loginCard').style.display=to==='login'?'':'none';document.getElementById('registerCard').style.display=to==='register'?'':'none';}
+function toggleEye(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁️':'🙈';}
+
+// ── NAV ──
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  const pg=document.getElementById('page-'+name);if(pg)pg.classList.add('active');
+  const na=document.getElementById('nav-'+name);if(na)na.classList.add('active');
+  if(name==='admin')renderAdmin();
+  if(name==='theory')setTimeout(drawGraphs,80);
+  if(name==='videos')renderVideoList();
+  if(name==='chat'){renderChat();renderMixedChat();updateChatVisibility();}
+  if(name==='feedback')renderFeedback();
+  window.scrollTo(0,0);
+}
+
+// ── THEME ──
+let dark=true;
+function toggleTheme(){dark=!dark;document.body.classList.toggle('light',!dark);document.querySelector('.theme-btn').textContent=dark?'🌙':'☀️';}
+
+// ── LANG ──
+const LANGS={pt:{home:'Início',theory:'Teoria',exercise:'Exercícios',slides:'Slides',projects:'Projetos',videos:'Vídeos',chat:'Chat',feedback:'Feedback'},en:{home:'Home',theory:'Theory',exercise:'Exercises',slides:'Slides',projects:'Projects',videos:'Videos',chat:'Chat',feedback:'Feedback'},es:{home:'Inicio',theory:'Teoría',exercise:'Ejercicios',slides:'Diapositivas',projects:'Proyectos',videos:'Videos',chat:'Chat',feedback:'Opiniones'}};
+function setLang(lang){const t=LANGS[lang]||LANGS.pt;const map={home:'🏠 ',theory:'📚 ',exercise:'✏️ ',slides:'🎞️ ',projects:'🔬 ',videos:'🎬 ',chat:'💬 ',feedback:'⭐ '};Object.keys(map).forEach(k=>{const el=document.getElementById('nav-'+k);if(el)el.textContent=map[k]+t[k];});}
+
+// ── SIMULATION ──
+let simRunning=false,simFrame=null,muX=0,muvX=0,muvVel=0,simTime=0;
+
+function resizeCanvas(){const c=document.getElementById('simCanvas');c.width=c.parentElement.clientWidth-4;c.height=320;drawSim();}
+
+function drawSim(){
+  const c=document.getElementById('simCanvas');if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d1526';ctx.fillRect(0,0,W,H);
+
+  const H2=H/2;
+  // MU lane - flat inclined ramp
+  ctx.fillStyle='#00d4ff';ctx.font='bold 11px Exo 2,sans-serif';ctx.fillText('MU – Rampa Reta (velocidade constante)',10,16);
+  const mSx=50,mEx=W-50,mSy=H2-50,mEy=H2-10;
+  ctx.beginPath();ctx.moveTo(mSx,mSy+2);ctx.lineTo(mEx,mEy+2);ctx.strokeStyle='#00d4ff33';ctx.lineWidth=4;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(mSx,mSy);ctx.lineTo(mEx,mEy);ctx.strokeStyle='#00d4ff66';ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.stroke();ctx.setLineDash([]);
+  // Equal spacing marks on MU
+  for(let i=1;i<=4;i++){const t=i/5;const px=mSx+t*(mEx-mSx);const py=mSy+t*(mEy-mSy);ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fillStyle='#00d4ff55';ctx.fill();}
+
+  // MUV lane - wavy ramp
+  ctx.fillStyle='#ff6b35';ctx.fillText('MUV – Rampa Ondulada (aceleração variável)',10,H2+16);
+  ctx.beginPath();
+  for(let x=mSx;x<=mEx;x+=2){
+    const t=(x-mSx)/(mEx-mSx);
+    const baseY=H2+30+t*60;
+    const wave=Math.sin(t*Math.PI*2.5)*14*(1-t*0.3);
+    const y=baseY+wave;
+    x===mSx?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='#ff6b3566';ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.stroke();ctx.setLineDash([]);
+
+  // MU car
+  const muProg=Math.min(muX/(W*0.85),1);
+  const muCX=mSx+muProg*(mEx-mSx);
+  const muCY=mSy+muProg*(mEy-mSy);
+  const muAng=Math.atan2(mEy-mSy,mEx-mSx);
+  drawCar(ctx,muCX,muCY,'#00d4ff','#003355',muAng,'MU');
+
+  // MUV car
+  const muvProg=Math.min(muvX/(W*0.85),1);
+  const muvCX=mSx+muvProg*(mEx-mSx);
+  const tp=muvProg,tp2=Math.min(muvProg+0.01,1);
+  const gy1=H2+30+tp*60+Math.sin(tp*Math.PI*2.5)*14*(1-tp*0.3);
+  const gy2=H2+30+tp2*60+Math.sin(tp2*Math.PI*2.5)*14*(1-tp2*0.3);
+  const muvAng=Math.atan2(gy2-gy1,(mEx-mSx)*0.01);
+  drawCar(ctx,muvCX,gy1,'#ff6b35','#331100',muvAng,'MUV');
+}
+
+function drawCar(ctx,x,y,color,body,angle,label){
+  ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+  const g=ctx.createLinearGradient(-22,-10,22,10);g.addColorStop(0,color);g.addColorStop(1,body);
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.roundRect(-22,-10,44,18,4);ctx.fill();
+  ctx.fillStyle=color+'aa';ctx.beginPath();ctx.roundRect(-12,-18,26,10,3);ctx.fill();
+  ctx.fillStyle='#ffe066';ctx.beginPath();ctx.ellipse(21,-2,4,3,0,0,Math.PI*2);ctx.fill();
+  [-13,11].forEach(wx=>{ctx.beginPath();ctx.arc(wx,9,5,0,Math.PI*2);ctx.fillStyle='#111';ctx.fill();ctx.beginPath();ctx.arc(wx,9,2,0,Math.PI*2);ctx.fillStyle='#555';ctx.fill();});
+  ctx.rotate(-angle);ctx.fillStyle='#fff';ctx.font='bold 8px Space Mono,monospace';ctx.textAlign='center';ctx.fillText(label,0,-22);
+  ctx.restore();
+}
+
+function simLoop(){
+  if(!simRunning)return;
+  const muSpd=parseFloat(document.getElementById('muSpeed').value);
+  const muvA=parseFloat(document.getElementById('muvAcc').value);
+  const W=document.getElementById('simCanvas').width;
+  simTime+=0.016;
+  muX=muSpd*45*simTime;
+  muvVel=muvA*18*simTime;
+  muvX+=muvVel*0.016;
+  if(muX>W&&muvX>W){muX=0;muvX=0;muvVel=0;simTime=0;}
+  document.getElementById('muVelDisplay').textContent=(muSpd*2).toFixed(1)+' m/s';
+  document.getElementById('muvVelDisplay').textContent=muvVel.toFixed(1)+' m/s';
+  document.getElementById('muPosDisplay').textContent=(muX/32).toFixed(1)+' m';
+  document.getElementById('muvPosDisplay').textContent=(muvX/32).toFixed(1)+' m';
+  drawSim();
+  simFrame=requestAnimationFrame(simLoop);
+}
+function startSim(){if(!simRunning){simRunning=true;simLoop();}}
+function resetSim(){simRunning=false;cancelAnimationFrame(simFrame);muX=0;muvX=0;muvVel=0;simTime=0;['muVelDisplay','muvVelDisplay','muPosDisplay','muvPosDisplay'].forEach(id=>document.getElementById(id).textContent='0.0 m/s'.replace('m/s',id.includes('Pos')?'m':'m/s'));drawSim();}
+
+// ── GRAPHS ──
+function drawGraphs(){
+  drawG('muStGraph','#00d4ff',t=>2.5*t,0,8,0,20,'t(s)','S(m)');
+  drawG('muVtGraph','#00d4ff',t=>2.5,0,8,0,5,'t(s)','V(m/s)');
+  drawG('muvStGraph','#ff6b35',t=>0.5*1.8*t*t,0,8,0,58,'t(s)','S(m)');
+  drawG('muvVtGraph','#ff6b35',t=>1.8*t,0,8,0,15,'t(s)','V(m/s)');
+}
+function drawG(id,color,fn,x0,x1,y0,y1,xL,yL){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,p={l:32,r:8,t:8,b:24};
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#111827';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#2a3a55';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,p.t);ctx.lineTo(p.l,H-p.b);ctx.lineTo(W-p.r,H-p.b);ctx.stroke();
+  ctx.fillStyle='#8fa3c0';ctx.font='9px Exo 2,sans-serif';ctx.textAlign='center';ctx.fillText(xL,W/2,H-3);ctx.save();ctx.rotate(-Math.PI/2);ctx.fillText(yL,-H/2,10);ctx.restore();
+  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.shadowColor=color;ctx.shadowBlur=6;
+  for(let i=0;i<=80;i++){const t=x0+(x1-x0)*i/80;const v=fn(t);const px=p.l+(t-x0)/(x1-x0)*(W-p.l-p.r);const py=H-p.b-(v-y0)/(y1-y0)*(H-p.t-p.b);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+  ctx.stroke();ctx.shadowBlur=0;
+}
+
+// ── SLIDES ──
+let curSlide=0;
+const slides=document.querySelectorAll('.slide');
+function buildDots(){const c=document.getElementById('slideDots');c.innerHTML='';slides.forEach((_,i)=>{const d=document.createElement('div');d.className='slide-dot'+(i===0?' active':'');d.onclick=()=>goSlide(i);c.appendChild(d);});}
+function goSlide(i){slides[curSlide].classList.remove('active');document.querySelectorAll('.slide-dot')[curSlide]?.classList.remove('active');curSlide=(i+slides.length)%slides.length;slides[curSlide].classList.add('active');document.querySelectorAll('.slide-dot')[curSlide]?.classList.add('active');document.getElementById('slideCounter').textContent=`${curSlide+1} / ${slides.length}`;}
+function nextSlide(){goSlide(curSlide+1);}
+function prevSlide(){goSlide(curSlide-1);}
+buildDots();
+
+// ── EXERCISES ──
+let curEx=null;
+const EXERCISES=[
+  {type:'MU',q:'Um carro viaja a {v} km/h em linha reta. Qual a distância em {t} horas?',vars:{v:[60,80,100,120],t:[2,3,4,5]},solve:d=>d.v*d.t,unit:'km',formula:'ΔS = v × t'},
+  {type:'MU',q:'Um trem percorre {s} km em {t} horas. Qual a velocidade média?',vars:{s:[180,240,300,450],t:[3,4,5,6]},solve:d=>d.s/d.t,unit:'km/h',formula:'v = ΔS / Δt'},
+  {type:'MUV',q:'Um carro parte do repouso com a = {a} m/s². Qual a velocidade após {t} s?',vars:{a:[2,3,4,5],t:[3,4,5,6]},solve:d=>d.a*d.t,unit:'m/s',formula:'v = v₀ + a·t'},
+  {type:'MUV',q:'v₀ = {v0} m/s, a = {a} m/s², t = {t} s. Qual a posição? (S₀=0)',vars:{v0:[0,5,10],a:[2,3,4],t:[3,4,5]},solve:d=>d.v0*d.t+0.5*d.a*d.t*d.t,unit:'m',formula:'S = v₀·t + ½·a·t²'},
+  {type:'MUV',q:'Torricelli: v₀={v0} m/s, a={a} m/s², ΔS={ds} m. Qual a velocidade final?',vars:{v0:[0,5],a:[2,3,4],ds:[50,80,100]},solve:d=>+Math.sqrt(d.v0**2+2*d.a*d.ds).toFixed(2),unit:'m/s',formula:'v² = v₀² + 2·a·ΔS'},
+  {type:'MUV',q:'Um carro freia de {v} m/s com desaceleração {a} m/s². Quanto tempo até parar?',vars:{v:[10,20,30,40],a:[2,4,5,10]},solve:d=>d.v/d.a,unit:'s',formula:'t = v / a (v_f=0)'},
+];
+
+function generateExercise(){
+  const ex=EXERCISES[Math.floor(Math.random()*EXERCISES.length)];
+  const vars={};for(const k in ex.vars)vars[k]=ex.vars[k][Math.floor(Math.random()*ex.vars[k].length)];
+  let q=ex.q;for(const k in vars)q=q.replace(new RegExp('{'+k+'}','g'),vars[k]);
+  curEx={ex,vars,answer:parseFloat(ex.solve(vars))};
+  document.getElementById('exQuestion').innerHTML=`<span style="color:var(--accent);font-weight:700">[${ex.type}]</span> ${q}<br><small style="color:var(--text2);font-family:'Space Mono',monospace">Fórmula: ${ex.formula}</small>`;
+  document.getElementById('exUnit').textContent=ex.unit;
+  document.getElementById('exAnswer').value='';
+  document.getElementById('exResult').style.display='none';
+}
+
+function checkExercise(){
+  if(!curEx){showToast('Gere um exercício primeiro!','warn');return;}
+  const ans=parseFloat(document.getElementById('exAnswer').value);
+  const r=document.getElementById('exResult');
+  if(isNaN(ans)){r.textContent='⚠️ Digite um número válido.';r.className='ex-result wrong';r.style.display='block';return;}
+  const ok=Math.abs(ans-curEx.answer)<0.15;
+  r.className='ex-result '+(ok?'correct':'wrong');
+  r.textContent=ok?`✅ Correto! Resposta: ${curEx.answer} ${curEx.ex.unit}`:`❌ Incorreto. Resposta correta: ${curEx.answer} ${curEx.ex.unit}`;
+  r.style.display='block';
+}
+
+function showExSolution(){
+  if(!curEx){showToast('Gere um exercício primeiro!','warn');return;}
+  const {ex,vars,answer}=curEx;
+  let html=`<strong>Solução Passo a Passo</strong><br><br>Fórmula: <code style="color:var(--accent)">${ex.formula}</code><br><br>`;
+  for(const k in vars)html+=`<strong>${k}</strong> = ${vars[k]}<br>`;
+  html+=`<br><strong style="color:var(--ok)">Resultado = ${answer} ${ex.unit}</strong>`;
+  openModal('💡 Solução',html);
+}
+
+// ── CENSORSHIP ──
+function censor(t){let r=t;BAD_WORDS.forEach(w=>{r=r.replace(new RegExp(w,'gi'),'*'.repeat(w.length));});return r;}
+function hasBad(t){return BAD_WORDS.some(w=>t.toLowerCase().includes(w));}
+function hasBadNick(t){return BAD_NICKS.some(w=>t.toLowerCase().includes(w));}
+
+// ── CHAT ──
+function updateChatVisibility(){
+  const lw=document.getElementById('chatLoginWarn'),ca=document.getElementById('chatArea');
+  const mca=document.getElementById('mixedChatArea'),mlw=document.getElementById('mixedChatLoginWarn');
+  if(!currentUser){lw.style.display='block';ca.style.display='none';mca.style.display='none';if(mlw)mlw.style.display='block';return;}
+  lw.style.display='none';ca.style.display='block';
+  if(hasRole(currentUser.role,'professor')){mca.style.display='block';if(mlw)mlw.style.display='none';}
+  else{mca.style.display='none';if(mlw)mlw.style.display='block';}
+}
+
+function sendChat(){
+  if(!currentUser){showToast('Faça login para chatear!','warn');return;}
+  const users=ls('fl_users')||[];
+  const me=users.find(u=>u.username===currentUser.username)||currentUser;
+  if(me.muted&&Date.now()<me.muteUntil){showToast(`Mutado por mais ${Math.ceil((me.muteUntil-Date.now())/60000)} min.`,'err');return;}
+  const inp=document.getElementById('chatInput');const raw=inp.value.trim();if(!raw)return;
+  const bad=hasBad(raw);const text=censor(raw);
+  const chat=ls('fl_chat')||[];
+  chat.push({user:currentUser.username,role:currentUser.role,text,rawText:bad?raw:'',ts:Date.now()});
+  lss('fl_chat',chat);inp.value='';
+  if(bad){const n=document.getElementById('chatNotify');n.innerHTML='🤖 Sua mensagem continha palavras inadequadas e foi censurada. Os admins estão vendo! 👁️';n.style.display='block';setTimeout(()=>n.style.display='none',5000);addBotMsg();notifyAdmins(`${currentUser.username} enviou mensagem censurada`);}
+  renderChat();
+  if(Math.random()<0.12)addBotMsgRandom();
+}
+
+function addBotMsg(){
+  const chat=ls('fl_chat')||[];chat.push({user:'🤖 RoboMod',role:'bot',text:'⚠️ Palavra inadequada detectada! Lembre-se: os administradores monitoram todas as mensagens. Respeito sempre! 🛡️',ts:Date.now()});lss('fl_chat',chat);renderChat();
+}
+function addBotMsgRandom(){
+  const chat=ls('fl_chat')||[];chat.push({user:'🤖 RoboMod',role:'bot',text:BOT_MSGS[Math.floor(Math.random()*BOT_MSGS.length)],ts:Date.now()});lss('fl_chat',chat);renderChat();
+}
+
+function sendMixedChat(){
+  if(!currentUser||!hasRole(currentUser.role,'professor'))return;
+  const inp=document.getElementById('mixedChatInput');const raw=inp.value.trim();if(!raw)return;
+  const chat=ls('fl_mixed_chat')||[];chat.push({user:currentUser.username,role:currentUser.role,text:censor(raw),ts:Date.now()});lss('fl_mixed_chat',chat);inp.value='';renderMixedChat();
+}
+
+function renderChatBox(boxId,data,allowDel){
+  const box=document.getElementById(boxId);if(!box)return;
+  box.innerHTML='';
+  data.slice(-60).forEach(m=>{
+    const isMe=currentUser&&m.user===currentUser.username;
+    const div=document.createElement('div');
+    div.className='chat-msg '+(m.role==='bot'?'bot':isMe?'mine':'other');
+    const rb=m.role==='bot'?`<span class="role-badge role-bot">Bot</span>`:m.role?`<span class="role-badge role-${m.role}">${ROLE_LABELS[m.role]||m.role}</span>`:'';
+    const del=allowDel&&currentUser&&hasRole(currentUser.role,'auxiliar')&&m.role!=='bot'?`<button onclick="deleteChatMsg('${boxId}',${m.ts})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:.65rem;margin-left:4px">🗑</button>`:'';
+    div.innerHTML=`<div class="msg-header"><strong>${m.user}</strong>${rb}${del}<span style="margin-left:auto;opacity:.6">${new Date(m.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span></div>${m.text}`;
+    box.appendChild(div);
+  });box.scrollTop=box.scrollHeight;
+}
+
+function renderChat(){const chat=ls('fl_chat')||[];renderChatBox('chatBox',chat,true);}
+function renderMixedChat(){const chat=ls('fl_mixed_chat')||[];renderChatBox('mixedChatBox',chat,true);}
+
+function deleteChatMsg(boxId,ts){
+  if(!currentUser||!hasRole(currentUser.role,'auxiliar'))return;
+  const key=boxId==='chatBox'?'fl_chat':'fl_mixed_chat';
+  let chat=ls(key)||[];chat=chat.filter(m=>m.ts!==ts);lss(key,chat);
+  addLog(`${currentUser.username} deletou mensagem`);
+  if(boxId==='chatBox')renderChat();else renderMixedChat();
+}
+
+// ── FEEDBACK ──
+let selectedRating=5;
+function setRating(n){selectedRating=n;document.querySelectorAll('#starRating span').forEach((s,i)=>s.style.opacity=i<n?'1':'0.3');}
+setRating(5);
+
+function submitFeedback(){
+  if(!currentUser){showToast('Faça login para enviar feedback!','warn');return;}
+  const text=document.getElementById('feedbackText').value.trim();
+  if(!text){showToast('Escreva um comentário!','warn');return;}
+  const fb=ls('fl_feedback')||[];
+  fb.push({user:currentUser.username,role:currentUser.role,rating:selectedRating,text:censor(text),rawText:hasBad(text)?text:'',ts:Date.now()});
+  lss('fl_feedback',fb);document.getElementById('feedbackText').value='';renderFeedback();showToast('Feedback enviado! ⭐','ok');
+}
+
+function renderFeedback(){
+  const list=document.getElementById('feedbackList');if(!list)return;
+  const fb=ls('fl_feedback')||[];list.innerHTML='';
+  fb.slice().reverse().forEach(f=>{
+    const canDel=currentUser&&hasRole(currentUser.role,'auxiliar');
+    const div=document.createElement('div');div.className='feedback-item';
+    div.innerHTML=`<div class="fb-header"><span class="fb-user">👤 ${f.user}</span><div style="display:flex;align-items:center;gap:6px"><span class="stars">${'⭐'.repeat(f.rating)}</span>${canDel?`<button class="btn btn-danger btn-sm" onclick="deleteFeedback(${f.ts})">🗑</button>`:''}</div></div><div class="fb-text">${f.text}</div>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteFeedback(ts){
+  if(!currentUser||!hasRole(currentUser.role,'auxiliar'))return;
+  let fb=ls('fl_feedback')||[];fb=fb.filter(f=>f.ts!==ts);lss('fl_feedback',fb);addLog(`${currentUser.username} deletou feedback`);renderFeedback();
+}
+
+// ── VIDEOS ──
+function renderVideoList(){
+  const videos=ls('fl_videos')||[];const list=document.getElementById('videoList');const none=document.getElementById('noVideosMsg');if(!list)return;
+  const active=videos.filter(v=>v.active);
+  if(!active.length){list.innerHTML='';none.style.display='block';return;}
+  none.style.display='none';list.innerHTML='';
+  active.forEach(v=>{
+    const card=document.createElement('div');card.className='video-card';
+    const isYt=v.url.includes('youtube')||v.url.includes('youtu.be');
+    let emb='';
+    if(isYt){const id=v.url.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1];emb=id?`<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`:`<div style="height:160px;display:flex;align-items:center;justify-content:center;color:var(--text2)">Link inválido</div>`;}
+    else emb=`<video controls src="${v.url}"></video>`;
+    card.innerHTML=`${emb}<div class="vid-info"><span class="video-badge badge-active">● Publicado</span><h4>${v.title||'Sem título'}</h4><p>${v.desc||''}</p></div>`;
+    list.appendChild(card);
+  });
+}
+
+// ── LOGS ──
+function addLog(msg){const logs=ls('fl_logs')||[];logs.push({msg,ts:Date.now()});if(logs.length>300)logs.splice(0,logs.length-300);lss('fl_logs',logs);}
+function notifyAdmins(msg){const c=ls('fl_staff_chat')||[];c.push({user:'🤖 Sistema',role:'bot',text:`⚠️ ALERTA: ${msg}`,ts:Date.now()});lss('fl_staff_chat',c);}
+
+// ── ADMIN ──
+function renderAdmin(){
+  if(!currentUser||!hasRole(currentUser.role,'auxiliar'))return;
+  const role=currentUser.role;
+  const tabs=[],panels=[];
+  if(hasRole(role,'auxiliar')){tabs.push({id:'users',label:'👥 Usuários'});panels.push({id:'users',html:buildUsersPanel()});}
+  tabs.push({id:'chatmon',label:'💬 Monitor Chat'});panels.push({id:'chatmon',html:buildChatMonitor()});
+  tabs.push({id:'fbadm',label:'⭐ Feedbacks'});panels.push({id:'fbadm',html:buildFbAdmin()});
+  tabs.push({id:'staffchat',label:'🔒 Chat Admins'});panels.push({id:'staffchat',html:buildStaffChatPanel()});
+  if(hasRole(role,'dono')){tabs.push({id:'logs',label:'📋 Logs'});panels.push({id:'logs',html:buildLogs()});}
+  if(hasRole(role,'dono')){tabs.push({id:'vidadm',label:'🎬 Vídeos'});panels.push({id:'vidadm',html:buildVideoAdmin()});}
+  if(role==='fundador'){tabs.push({id:'acts',label:'📊 Atividades'});panels.push({id:'acts',html:buildActivities()});}
+
+  document.getElementById('adminTabs').innerHTML=tabs.map((t,i)=>`<button class="admin-tab${i===0?' active':''}" onclick="switchAdmTab('${t.id}')">${t.label}</button>`).join('');
+  document.getElementById('adminPanels').innerHTML=panels.map((p,i)=>`<div class="admin-panel${i===0?' active':''}" id="adp-${p.id}">${p.html}</div>`).join('');
+  setTimeout(()=>renderStaffChat(),50);
+}
+
+function switchAdmTab(id){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`[onclick="switchAdmTab('${id}')"]`)?.classList.add('active');
+  document.getElementById('adp-'+id)?.classList.add('active');
+  if(id==='staffchat')renderStaffChat();
+}
+
+function buildUsersPanel(){
+  const users=ls('fl_users')||[];const isFund=currentUser.role==='fundador';
+  let rows='';
+  users.forEach(u=>{
+    const opts=ROLE_HIERARCHY.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_LABELS[r]||r}</option>`).join('');
+    const canChg=isFund||(hasRole(currentUser.role,'dono')&&!hasRole(u.role,'dono'));
+    const rd=canChg?`<select class="select-role" onchange="setRole('${u.username}',this.value)">${opts}</select>`:`<span class="role-badge role-${u.role}">${ROLE_LABELS[u.role]||u.role}</span>`;
+    const now=Date.now();const isMuted=u.muted&&u.muteUntil>now;
+    const muteB=u.username!==currentUser.username?(isMuted?`<button class="btn btn-ok btn-sm" onclick="unmuteUser('${u.username}')">🔊</button>`:`<button class="btn btn-warn btn-sm" onclick="muteUser('${u.username}')">🔇 5min</button>`):'';
+    const passB=isFund?`<button class="btn btn-ghost btn-sm" onclick="viewPass('${u.username}')">🔑</button>`:'';
+    const delB=isFund&&u.username!==currentUser.username?`<button class="btn btn-danger btn-sm" onclick="deleteAcc('${u.username}')">🗑</button>`:'';
+    rows+=`<tr><td><strong>${u.username}</strong>${isMuted?'<span class="muted-badge">MUTADO</span>':''}</td><td>${rd}</td><td><div class="user-row-actions">${muteB}${passB}${delB}</div></td></tr>`;
+  });
+  return `<div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Usuário</th><th>Cargo</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function setRole(username,role){
+  const myIdx=ROLE_HIERARCHY.indexOf(currentUser.role);const tIdx=ROLE_HIERARCHY.indexOf(role);
+  if(currentUser.role!=='fundador'&&tIdx>=myIdx){showToast('Não pode dar cargo igual ou superior ao seu!','err');renderAdmin();return;}
+  const users=ls('fl_users')||[];const u=users.find(x=>x.username===username);
+  if(u){u.role=role;lss('fl_users',users);}
+  if(currentUser.username===username){currentUser.role=role;lss('fl_session',currentUser);}
+  addLog(`${currentUser.username} → cargo de ${username}: ${role}`);showToast('Cargo atualizado!','ok');renderAdmin();
+}
+function muteUser(username){const users=ls('fl_users')||[];const u=users.find(x=>x.username===username);if(u){u.muted=true;u.muteUntil=Date.now()+5*60*1000;lss('fl_users',users);}addLog(`${currentUser.username} mutou ${username}`);showToast(`${username} mutado.`,'warn');renderAdmin();}
+function unmuteUser(username){const users=ls('fl_users')||[];const u=users.find(x=>x.username===username);if(u){u.muted=false;u.muteUntil=0;lss('fl_users',users);}addLog(`${currentUser.username} desmutou ${username}`);showToast(`${username} desmutado.`,'ok');renderAdmin();}
+function viewPass(username){if(currentUser?.role!=='fundador'){showToast('Apenas Fundador!','err');return;}const u=(ls('fl_users')||[]).find(x=>x.username===username);if(u)openModal('🔑 Senha',`Usuário: <strong>${username}</strong><br>Senha: <code style="color:var(--accent)">${u.password}</code>`);}
+function deleteAcc(username){if(currentUser?.role!=='fundador'){showToast('Apenas Fundador!','err');return;}if(!confirm(`Excluir conta de ${username}?`))return;let users=ls('fl_users')||[];users=users.filter(u=>u.username!==username);lss('fl_users',users);addLog(`${currentUser.username} excluiu conta ${username}`);showToast(`${username} excluído.`,'ok');renderAdmin();}
+
+function buildChatMonitor(){
+  const chat=ls('fl_chat')||[];
+  let html='<div style="max-height:380px;overflow-y:auto">';
+  chat.slice().reverse().slice(0,60).forEach(m=>{const cens=m.rawText?`<span style="color:var(--danger);font-size:.75rem"> [censurado: "${m.rawText}"]</span>`:'';html+=`<div class="log-entry"><span>${m.user}</span> [${ROLE_LABELS[m.role]||m.role}]: ${m.text}${cens} <small style="opacity:.6">${new Date(m.ts).toLocaleString('pt-BR')}</small></div>`;});
+  html+='</div>';return html;
+}
+function buildFbAdmin(){
+  const fb=ls('fl_feedback')||[];
+  let html='<div style="max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">';
+  fb.slice().reverse().forEach(f=>{const c=f.rawText?`<br><small style="color:var(--danger)">Original: "${f.rawText}"</small>`:'';html+=`<div class="feedback-item"><div class="fb-header"><span class="fb-user">${f.user}</span><div style="display:flex;gap:6px;align-items:center"><span class="stars">${'⭐'.repeat(f.rating)}</span><button class="btn btn-danger btn-sm" onclick="deleteFeedback(${f.ts});renderAdmin()">🗑</button></div></div><div class="fb-text">${f.text}${c}</div></div>`;});
+  html+='</div>';return html;
+}
+function buildStaffChatPanel(){return `<div class="staff-chat-box" id="staffChatBox"></div><div class="chat-input-row" style="margin-top:10px"><input class="chat-input" id="staffChatInput" placeholder="Chat privado dos admins..." maxlength="280" onkeydown="if(event.key==='Enter')sendStaffChat()"><button class="btn btn-primary" onclick="sendStaffChat()">Enviar</button></div>`;}
+function renderStaffChat(){const box=document.getElementById('staffChatBox');if(!box)return;const chat=ls('fl_staff_chat')||[];box.innerHTML='';chat.slice(-40).forEach(m=>{const isMe=currentUser&&m.user===currentUser.username;const div=document.createElement('div');div.className='chat-msg '+(m.role==='bot'?'bot':isMe?'mine':'other');div.innerHTML=`<div class="msg-header"><strong>${m.user}</strong></div>${m.text}`;box.appendChild(div);});box.scrollTop=box.scrollHeight;}
+function sendStaffChat(){if(!currentUser||!hasRole(currentUser.role,'auxiliar'))return;const inp=document.getElementById('staffChatInput');const raw=inp.value.trim();if(!raw)return;const chat=ls('fl_staff_chat')||[];chat.push({user:currentUser.username,role:currentUser.role,text:censor(raw),ts:Date.now()});lss('fl_staff_chat',chat);inp.value='';renderStaffChat();}
+function buildLogs(){const logs=ls('fl_logs')||[];let html='<div style="max-height:380px;overflow-y:auto">';logs.slice().reverse().slice(0,100).forEach(l=>{html+=`<div class="log-entry"><span>${new Date(l.ts).toLocaleString('pt-BR')}</span> — ${l.msg}</div>`;});html+='</div>';return html;}
+function buildVideoAdmin(){
+  const videos=ls('fl_videos')||[];
+  let html=`<div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <input class="form-input" id="vidTitle" placeholder="Título" style="flex:1;min-width:130px">
+    <input class="form-input" id="vidUrl" placeholder="URL YouTube ou direto" style="flex:2;min-width:180px">
+    <input class="form-input" id="vidDesc" placeholder="Descrição" style="flex:1;min-width:130px">
+    <button class="btn btn-primary" onclick="addVideo()">+ Adicionar</button>
+  </div><div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Título</th><th>Status</th><th>Ações</th></tr></thead><tbody>`;
+  videos.forEach(v=>{html+=`<tr><td>${v.title}</td><td><span class="video-badge ${v.active?'badge-active':'badge-inactive'}">${v.active?'Ativo':'Inativo'}</span></td><td><div class="user-row-actions"><button class="btn btn-${v.active?'warn':'ok'} btn-sm" onclick="toggleVideo(${v.ts})">${v.active?'Desativar':'Ativar'}</button><button class="btn btn-ghost btn-sm" onclick="editVidUrl(${v.ts})">✏️ Link</button><button class="btn btn-danger btn-sm" onclick="deleteVideo(${v.ts})">🗑</button></div></td></tr>`;});
+  html+='</tbody></table></div>';return html;
+}
+function addVideo(){const t=document.getElementById('vidTitle')?.value.trim();const u=document.getElementById('vidUrl')?.value.trim();const d=document.getElementById('vidDesc')?.value.trim();if(!t||!u){showToast('Título e URL obrigatórios!','warn');return;}const videos=ls('fl_videos')||[];videos.push({title:t,url:u,desc:d||'',active:true,ts:Date.now()});lss('fl_videos',videos);addLog(`${currentUser.username} adicionou vídeo: ${t}`);showToast('Vídeo adicionado!','ok');renderAdmin();}
+function toggleVideo(ts){const v=ls('fl_videos')||[];const x=v.find(i=>i.ts===ts);if(x){x.active=!x.active;lss('fl_videos',v);}addLog(`${currentUser.username} ${x?.active?'ativou':'desativou'} vídeo`);renderAdmin();}
+function editVidUrl(ts){const v=ls('fl_videos')||[];const x=v.find(i=>i.ts===ts);if(!x)return;const n=prompt('Novo URL:',x.url);if(n?.trim()){x.url=n.trim();lss('fl_videos',v);addLog(`${currentUser.username} editou URL do vídeo`);renderAdmin();}}
+function deleteVideo(ts){if(!confirm('Excluir vídeo?'))return;let v=ls('fl_videos')||[];const x=v.find(i=>i.ts===ts);v=v.filter(i=>i.ts!==ts);lss('fl_videos',v);addLog(`${currentUser.username} excluiu vídeo: ${x?.title}`);renderAdmin();}
+function buildActivities(){
+  const chat=ls('fl_chat')||[];const fb=ls('fl_feedback')||[];
+  return `<div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-danger" onclick="clearAllChat()">🗑 Apagar todo chat público</button>
+    <button class="btn btn-danger" onclick="clearAllFb()">🗑 Apagar todos feedbacks</button>
+    <button class="btn btn-danger" onclick="clearAllLogs()">🗑 Apagar logs</button>
+  </div>
+  <div class="log-entry">Chat público: <span>${chat.length} msgs</span></div>
+  <div class="log-entry">Feedbacks: <span>${fb.length}</span></div>
+  <div class="log-entry">Usuários: <span>${(ls('fl_users')||[]).length}</span></div>`;
+}
+function clearAllChat(){if(!confirm('Apagar TUDO do chat?'))return;lss('fl_chat',[]);addLog(`${currentUser.username} apagou chat público`);renderAdmin();}
+function clearAllFb(){if(!confirm('Apagar TODOS os feedbacks?'))return;lss('fl_feedback',[]);addLog(`${currentUser.username} apagou feedbacks`);renderAdmin();}
+function clearAllLogs(){if(!confirm('Apagar logs?'))return;lss('fl_logs',[]);renderAdmin();}
+
+// ── MODAL & TOAST ──
+function openModal(title,content){document.getElementById('modalContent').innerHTML=`<h3>${title}</h3><div style="font-size:.88rem;line-height:1.7;color:var(--text2);margin-top:10px">${content}</div>`;document.getElementById('modalOverlay').classList.add('open');}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+let toastT=null;
+function showToast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast toast-${type} show`;clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),3500);}
+
+// ── INIT ──
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
+if(currentUser)afterLogin();
+// Periodic bot
+setInterval(()=>{if(Math.random()<0.05&&(ls('fl_chat')||[]).length>2){addBotMsgRandom();if(document.getElementById('page-chat')?.classList.contains('active'))renderChat();}},45000);
+</script>
+</body>
+  </html>
